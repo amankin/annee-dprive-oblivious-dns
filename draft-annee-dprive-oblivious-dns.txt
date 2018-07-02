@@ -21,8 +21,8 @@ Abstract
    that encrypt a user's DNS queries to the recursive resolver and thus
    obscure them from some network observers and from the user's Internet
    service provider.  However, these systems merely transfer trust to a
-   third party.  We posit that argue that no single party should be able
-   to associate DNS queries with a client IP address that issues those
+   third party.  We argue that no single party should be able to
+   associate DNS queries with a client IP address that issues those
    queries.  To this end, this document specifies Oblivious DNS (ODNS),
    which introduces an additional layer of obfuscation between clients
    and their queries.  To accomplish this, ODNS uses its own
@@ -40,7 +40,7 @@ Status of This Memo
    Internet-Drafts are working documents of the Internet Engineering
    Task Force (IETF).  Note that other groups may also distribute
    working documents as Internet-Drafts.  The list of current Internet-
-   Drafts is at http://datatracker.ietf.org/drafts/current/.
+   Drafts is at https://datatracker.ietf.org/drafts/current/.
 
    Internet-Drafts are draft documents valid for a maximum of six months
    and may be updated, replaced, or obsoleted by other documents at any
@@ -65,7 +65,7 @@ Copyright Notice
 
    This document is subject to BCP 78 and the IETF Trust's Legal
    Provisions Relating to IETF Documents
-   (http://trustee.ietf.org/license-info) in effect on the date of
+   (https://trustee.ietf.org/license-info) in effect on the date of
    publication of this document.  Please review these documents
    carefully, as they describe your rights and restrictions with respect
    to this document.  Code Components extracted from this document must
@@ -84,7 +84,7 @@ Table of Contents
      5.2.  Key Distribution  . . . . . . . . . . . . . . . . . . . .   6
      5.3.  QNAME Length  . . . . . . . . . . . . . . . . . . . . . .   7
    6.  Backward Compatibility  . . . . . . . . . . . . . . . . . . .   7
-   7.  IANA considerations . . . . . . . . . . . . . . . . . . . . .   7
+   7.  IANA considerations . . . . . . . . . . . . . . . . . . . . .   8
    8.  Security considerations . . . . . . . . . . . . . . . . . . .   8
    9.  Acknowledgements  . . . . . . . . . . . . . . . . . . . . . .   8
    10. Contributors  . . . . . . . . . . . . . . . . . . . . . . . .   8
@@ -121,13 +121,14 @@ Internet-Draft                Oblivious DNS                    July 2018
 2.  Introduction
 
    Recognizing the privacy vulnerabilities associated with DNS queries,
-   a number of standards have been developed and services deployed that
-   that encrypt a user's DNS queries to the recursive resolver and thus
+   a number of specifications and services have been developed that
+   encrypt a user's DNS queries to the recursive resolver and thus
    obscure them from some network observers and from the user's Internet
    service provider.  However, these systems merely transfer trust to a
-   third party.  We posit that no single party should be able to
+   third party.  We argue that no single party should be able to
    associate DNS queries with a client IP address that issues those
-   queries [many of the Informative References can go here].
+   queries, that there should be obfuscation between the client and its
+   queries.
 
    DNS queries can reveal significant information about the Internet
    destinations that a user or device is communicating with.  For
@@ -136,32 +137,31 @@ Internet-Draft                Oblivious DNS                    July 2018
    devices, the DNS queries may reveal the types of devices in user
    homes.  Previous work has also demonstrated that DNS lookups can
    identify the websites that a user is visiting, even when they are
-   using an anonymizing service such as Tor. The operator of a DNS
-   resolver may also retain information about DNS queries and responses
-   ---including the IP addresses that query the domains and the DNS
-   names that are queries.
+   using an anonymizing service such as Tor [Tor-DNS].  The operator of
+   a DNS resolver may also retain information about DNS queries and
+   responses---including the IP addresses that query the domains and the
+   DNS names that are queries.
 
-   Other approaches have layered encryption on top of DNS.  For example,
-   DNS-over- TLS, DNS-over-DTLS, and DNS-over-HTTPS send DNS queries
-   over an encrypted channel, which prevents an eavesdropper from
-   learning the contents of a DNS lookup but does not prevent the
+   Other approaches have layered encryption on top of the DNS query
+   stream.  For example, DNS-over-TLS [RFC7858], DNS-over-DTLS
+   [RFC8094], and DNS-over-HTTPS [I-D.ietf-doh-dns-over-https] all send
+   DNS queries over an encrypted channel, which prevents an eavesdropper
+   from learning the contents of a DNS lookup but does not prevent the
    operator of the recursive resolver from linking queries and IP
-   addresses.  DNSCurve uses elliptic curve cryptography to encrypt DNS
-   requests and responses; it also authenticates all DNS responses and
-   eliminates any forged responses.  DNSCrypt encrypts and authenticates
-   DNS traffic between a client and a recursive resolver.  Neither of
-   these approaches prevent the recursive resolver from observing DNS
-   queries and responses.
+   addresses.  DNSCurve (ref to be added) uses elliptic curve
+   cryptography to encrypt DNS requests and responses; it also
+   authenticates all DNS responses and eliminates any forged responses.
+   DNSCrypt (ref to be added) encrypts and authenticates DNS traffic
+   between a client and a recursive resolver.  None of the approaches
+   prevent the recursive resolver from observing DNS queries and
+   responses.  Note: a new draft is under development, targetted to for
+   BCP, that n would offers a policy and best-practices approach to the
+   problem of recursive resolvers's observation of this data.
 
    ODNS (1) obfuscates the queries that a recursive resolver sees from
    the clients that issue DNS queries; and (2) obfuscates the client's
    IP address from upper levels of the DNS hierarchy that ultimately
-   resolve the query (\ie, the authoritative servers).  ODNS operates in
-   the context of the existing DNS protocol, allowing the existing
-   deployed infrastructure to remain unchanged.  A client sends an
-   encrypted query to a recursive resolver, which then forwards the
-   query to an authoritative DNS server that can resolve ODNS queries.
-
+   resolve the query (that is, the authoritative servers).  ODNS
 
 
 
@@ -170,54 +170,54 @@ Edmundson, et al.        Expires January 3, 2019                [Page 3]
 Internet-Draft                Oblivious DNS                    July 2018
 
 
+   operates in the context of the existing DNS protocol, allowing the
+   existing deployed infrastructure to remain unchanged.  A client sends
+   an encrypted query to a recursive resolver, which then forwards the
+   query to an authoritative DNS server that can resolve ODNS queries.
    The recursive resolver never sees the DNS domain that the client
    queries, and the ODNS server never sees the IP address of the client.
 
-   ODNS requires small changes to a client's stub resolver, as well as
-   to the authoritative DNS server.  The stub resolver must take an
-   existing DNS name, encrypt it, and append the ODNS domain to ensure
-   that the query is forwarded to the ODNS authoritative DNS server.
-   The ODNS authoritative DNS server must also act as a recursive DNS
-   resolver, ultimately retrieving the DNS record that corresponds to
-   the client's initial query.
+   ODNS requires a modified client stub resolver, and a modified
+   authoritative DNS server.  The stub resolver must take an existing
+   DNS name, encrypt it, and append the ODNS domain to ensure that the
+   query is forwarded to the ODNS authoritative DNS server.  The
+   authoritative DNS server for ODNS must also act as a recursive DNS
+   resolver; it must not only reply for the ODNS namespace but also
+   ultimately retrieve the DNS record that corresponds to the client's
+   initial query.
 
 3.  ODNS Overview
 
    ODNS operates similarly to conventional DNS, but adds two components:
-   (1)~each client runs a modified stub resolver; and (2) ODNS runs an
+   (1)each client runs a modified stub resolver; and (2) ODNS runs an
    authoritative name server that also acts as a recursive DNS resolver
    for the original DNS query:
 
-   o  The client's stub resolver obfuscates domain that the client is
-      requesting (via symmetric encryption), resulting in the recursive
-      resolver being unaware of the requested domain.
+   o  The client's stub resolver obfuscates the domain that the client
+      is requesting (via symmetric encryption), resulting in the
+      client's configured recursive resolver being unaware of the
+      requested domain.
 
    o  The authoritative name server for ODNS separates the clients'
       identities from their corresponding DNS requests, such that the
       name servers cannot learn who is requesting specific domains.
 
-   Operators of recursive DNS resolvers see individual IP addresses and
-   with the fully qualified domain name that accompanies the query.
-   Operators of authoritative resolvers may also be able to learn
-   information about the client by using one of the extensions to DNS,
-   such as EDNS0 Client Subnet.  EDNS0 can reveal
-   information about the user's IP address or subnet to authoritative
-   DNS servers higher in the DNS hierarchy (not only recursive DNS
-   resolvers).  ODNS hides a client's IP address from the authoritative
-   name servers at different levels of the DNS hierarchy.
+   As detailed in [RFC7626], operators of recursive DNS resolvers see
+   individual IP addresses along with the fully qualified domain name
+   those IPs request.  Operators of authoritative resolvers may also be
+   able to learn information about the client by using one of the
+   extensions to DNS, notably EDNS0 Client Subnet (ECS) [RFC7871].  ECS
+   can reveal information about the user's IP address or subnet to
+   authoritative DNS servers higher in the DNS hierarchy (not only
+   recursive DNS resolvers).  ODNS hides a client's IP address from the
+   authoritative name servers at different levels of the DNS hierarchy.
 
-   The recursive DNS resolver knows the client IP address but never sees
-   the domain that it queries.  ODNS requires the client to use a custom
-   local stub resolver, which hides the requested domain from the
-   recursive resolver.  The ODNS stub resolver, which runs at the
-   client, encrypts the original DNS query for the ODNS authoritative
-   DNS server before it appends the .odns domain to the query, which
-   causes the recursive resolver to forward the encrypted domain name on
-   to the ODNS authoritative server.
-
-   When an ODNS authoritative DNS server receives a DNS query, it
-   removes any client information from the request (e.g., the client IP
-   address, ENDS0 client subnet information) before performing
+   The configured (non-ODNS) recursive DNS resolver knows the client IP
+   address but never sees the domain that it queries.  ODNS requires the
+   client to use a custom local stub resolver, which hides the requested
+   domain from the recursive resolver.  The ODNS stub resolver, which
+   runs at the client, encrypts the original DNS query for the ODNS
+   authoritative DNS server before it appends the domain for the ODNS
 
 
 
@@ -226,12 +226,23 @@ Edmundson, et al.        Expires January 3, 2019                [Page 4]
 Internet-Draft                Oblivious DNS                    July 2018
 
 
-   additional DNS lookups.  The .odns name server then acts as a
-   recursive resolver.  For simplicity, we say that this authoritative
-   server is for .odns domains, but any authoritative DNS domain can run
-   an ODNS server.  The authoritative server forwards any response to
-   the original recursive DNS resolver, which in turn sends the response
-   to the client.
+   namespace to the query, which causes the recursive resolver to
+   forward the encrypted domain name on to the ODNS authoritative
+   server.  NOTE: for simplicity, we sometimes say that this
+   authoritative server is for .odns, but any authoritative DNS domain
+   can run an ODNS server.  Even if there was a TLD, there would be
+   leakage of information, because the IP addresses of clients and
+   recursive resolvers would be seen at the root.  Experiments can be
+   done to avoid leakage about queries of this nature through adaptation
+   of [RFC7706].
+
+   When an ODNS authoritative DNS server receives a DNS query, it
+   removes any client information from the request (e.g., the client IP
+   address, EDNS0 client subnet information) before performing
+   additional DNS lookups.  The ODNS name server then switches to acting
+   as a recursive resolver.  The authoritative server forwards any
+   response to the original recursive DNS resolver, which in turn sends
+   the response to the client.
 
    The recursive DNS resolver receives the request from the client, but
    cannot identify the genuine domain.  It parses the TLD (.odns) and
@@ -260,20 +271,9 @@ Internet-Draft                Oblivious DNS                    July 2018
       generates a symmetric session key, encrypts the domain name with
       the session key, encrypts the session key with the authoritative
       server's public key, and appends the .odns TLD to the encrypted
-      domain. ($\{$www.foo.com$\}_k$.odns.)  The stub also appends the
-      session key encrypted under the .odns authoritative server's
-      public key ($\{k\}_{PK}$)
-
-   o  The client sends the query in the Additional Information portion
-      of the DNS query to the recursive resolver, which then sends it to
-      the authoritative name server for .odns.
-
-   o  The authoritative server for ODNS queries decrypts the session
-      key, which it uses to decrypt the domain in the query.
-
-   o  The authoritative server forwards a recursive DNS request to the
-      appropriate name server for the original domain, which then
-      returns the answer to the ODNS server.
+      domain. (www.example.com_k.odns.)  The stub also appends the
+      session key encrypted under the ODNS authoritative server's public
+      key k_PK)
 
 
 
@@ -281,6 +281,17 @@ Edmundson, et al.        Expires January 3, 2019                [Page 5]
 
 Internet-Draft                Oblivious DNS                    July 2018
 
+
+   o  The client sends the query in the Additional Information portion
+      of the DNS query to the recursive resolver, which then sends it to
+      the authoritative name server for ODNS.
+
+   o  The authoritative server for ODNS queries decrypts the session
+      key, which it uses to decrypt the domain in the query.
+
+   o  The authoritative server forwards a recursive DNS request to the
+      appropriate name server for the original domain, which then
+      returns the answer to the ODNS server.
 
    o  The ODNS server returns the answer to the client's recursive
       resolver.
@@ -319,6 +330,14 @@ Internet-Draft                Oblivious DNS                    July 2018
    Likewise, in order to preserve user identity privacy the key
    distribution must be done in a way that the authoritative server
    never learns the identity (i.e., IP address) of a stub.  This
+
+
+
+Edmundson, et al.        Expires January 3, 2019                [Page 6]
+
+Internet-Draft                Oblivious DNS                    July 2018
+
+
    disqualifies out-of-band key exchange as in EncDNS.  Instead, we
    leverage the DNS infrastructure itself to distribute keys while
    maintaining privacy.  We have defined a ``special'' query (e.g.,
@@ -330,14 +349,6 @@ Internet-Draft                Oblivious DNS                    July 2018
    locate the nearest authoritative server.  The authoritative that
    receives the query responds with an OPT record that includes a self-
    certifying name (e.g., ABC.odns), such that the name of the server is
-
-
-
-Edmundson, et al.        Expires January 3, 2019                [Page 6]
-
-Internet-Draft                Oblivious DNS                    July 2018
-
-
    derived from the public key itself and is associated with an instance
    of the authoritative nameserver listening on the unique unicast IP
    address, and the authoritative server's public key; this response is
@@ -360,14 +371,13 @@ Internet-Draft                Oblivious DNS                    July 2018
    QNAME field consists of 4 sets of 63 bytes, which limits both the key
    size and encryption scheme used.  For this reason, ODNS uses 16-byte
    AES session keys and encrypts the session keys using the Elliptic
-   Curve Integrated Encryption Scheme (ECIES)~\cite{ecies}.  Once the
-   session key is encrypted, the resulting value takes up 44 bytes of
-   the QNAME field.  In the future, we envision an ODNS-specific OPT
-   code that would cause recursive resolvers to maintain and forward the
-   ODNS OPT record intact to the authoritative nameserver.  Such a
-   mechanism allows for the use of larger encryption keys as OPT records
-   can be much larger (typically 4096 bytes) that the space alloted for
-   QNAMEs.
+   Curve Integrated Encryption Scheme (ECIES)~.  Once the session key is
+   encrypted, the resulting value takes up 44 bytes of the QNAME field.
+   In the future, we envision an ODNS-specific OPT code that would cause
+   recursive resolvers to maintain and forward the ODNS OPT record
+   intact to the authoritative nameserver.  Such a mechanism allows for
+   the use of larger encryption keys as OPT records can be much larger
+   (typically 4096 bytes) that the space alloted for QNAMEs.
 
 6.  Backward Compatibility
 
@@ -376,6 +386,14 @@ Internet-Draft                Oblivious DNS                    July 2018
    the DNS system occur over long time scales.  Our design must not rely
    upon changes made at recursive resolvers, root nameservers, or TLD
    nameservers.  We engineer the ODNS stub and authoritative
+
+
+
+Edmundson, et al.        Expires January 3, 2019                [Page 7]
+
+Internet-Draft                Oblivious DNS                    July 2018
+
+
    functionality with this in mind as these two locations in the DNS
    hierarchy are readily controlled.
 
@@ -386,14 +404,6 @@ Internet-Draft                Oblivious DNS                    July 2018
    the reasons discussed in Section 5.3 and a shorter privately
    registered name may be chosen for future larger-scale
    experimentation.  An infrastructure related zone would be more
-
-
-
-Edmundson, et al.        Expires January 3, 2019                [Page 7]
-
-Internet-Draft                Oblivious DNS                    July 2018
-
-
    advantageous choice.  Therefore discussion should resolve the
    appropriateness and conditions of a request for a special use domain
    name, e.g. odns.arpa.  This falls under the considerations in
@@ -414,8 +424,6 @@ Internet-Draft                Oblivious DNS                    July 2018
 
 9.  Acknowledgements
 
-   TODO: Acknowledge funding source here if desired.
-
 10.  Contributors
 
    The following contributed significantly to the document:
@@ -435,20 +443,17 @@ Internet-Draft                Oblivious DNS                    July 2018
               Terminology", draft-ietf-dnsop-terminology-bis-10 (work in
               progress), April 2018.
 
-   [RFC2119]  Bradner, S., "Key words for use in RFCs to Indicate
-              Requirement Levels", BCP 14, RFC 2119,
-              DOI 10.17487/RFC2119, March 1997, <https://www.rfc-
-              editor.org/info/rfc2119>.
-
-
-
-
 
 
 Edmundson, et al.        Expires January 3, 2019                [Page 8]
 
 Internet-Draft                Oblivious DNS                    July 2018
 
+
+   [RFC2119]  Bradner, S., "Key words for use in RFCs to Indicate
+              Requirement Levels", BCP 14, RFC 2119,
+              DOI 10.17487/RFC2119, March 1997,
+              <https://www.rfc-editor.org/info/rfc2119>.
 
    [RFC3172]  Huston, G., Ed., "Management Guidelines & Operational
               Requirements for the Address and Routing Parameter Area
@@ -458,8 +463,13 @@ Internet-Draft                Oblivious DNS                    July 2018
    [RFC6973]  Cooper, A., Tschofenig, H., Aboba, B., Peterson, J.,
               Morris, J., Hansen, M., and R. Smith, "Privacy
               Considerations for Internet Protocols", RFC 6973,
-              DOI 10.17487/RFC6973, July 2013, <https://www.rfc-
-              editor.org/info/rfc6973>.
+              DOI 10.17487/RFC6973, July 2013,
+              <https://www.rfc-editor.org/info/rfc6973>.
+
+   [RFC7871]  Contavalli, C., van der Gaast, W., Lawrence, D., and W.
+              Kumari, "Client Subnet in DNS Queries", RFC 7871,
+              DOI 10.17487/RFC7871, May 2016,
+              <https://www.rfc-editor.org/info/rfc7871>.
 
    [RFC8174]  Leiba, B., "Ambiguity of Uppercase vs Lowercase in RFC
               2119 Key Words", BCP 14, RFC 8174, DOI 10.17487/RFC8174,
@@ -467,8 +477,8 @@ Internet-Draft                Oblivious DNS                    July 2018
 
    [RFC8310]  Dickinson, S., Gillmor, D., and T. Reddy, "Usage Profiles
               for DNS over TLS and DNS over DTLS", RFC 8310,
-              DOI 10.17487/RFC8310, March 2018, <https://www.rfc-
-              editor.org/info/rfc8310>.
+              DOI 10.17487/RFC8310, March 2018,
+              <https://www.rfc-editor.org/info/rfc8310>.
 
 12.2.  Informative References
 
@@ -477,27 +487,17 @@ Internet-Draft                Oblivious DNS                    July 2018
               (DoH)", draft-ietf-doh-dns-over-https-12 (work in
               progress), June 2018.
 
-   [I-D.ietf-dprive-padding-policy]
-              Mayrhofer, A., "Padding Policy for EDNS(0)", draft-ietf-
-              dprive-padding-policy-05 (work in progress), April 2018.
-
-   [Pitfalls-of-DNS-Encryption]
-              Shulman, H., "Pretty Bad Privacy: Pitfalls of DNS
-              Encryption", 2014, <https://www.ietf.org/mail-archive/web/
-              dns-privacy/current/pdfWqAIUmEl47.pdf>.
-
    [RFC7626]  Bortzmeyer, S., "DNS Privacy Considerations", RFC 7626,
-              DOI 10.17487/RFC7626, August 2015, <https://www.rfc-
-              editor.org/info/rfc7626>.
+              DOI 10.17487/RFC7626, August 2015,
+              <https://www.rfc-editor.org/info/rfc7626>.
 
    [RFC7686]  Appelbaum, J. and A. Muffett, "The ".onion" Special-Use
               Domain Name", RFC 7686, DOI 10.17487/RFC7686, October
               2015, <https://www.rfc-editor.org/info/rfc7686>.
 
-   [RFC7706]  Kumari, W. and P. Hoffman, "Decreasing Access Time to Root
-              Servers by Running One on Loopback", RFC 7706,
-              DOI 10.17487/RFC7706, November 2015, <https://www.rfc-
-              editor.org/info/rfc7706>.
+
+
+
 
 
 
@@ -506,45 +506,27 @@ Edmundson, et al.        Expires January 3, 2019                [Page 9]
 Internet-Draft                Oblivious DNS                    July 2018
 
 
-   [RFC7766]  Dickinson, J., Dickinson, S., Bellis, R., Mankin, A., and
-              D. Wessels, "DNS Transport over TCP - Implementation
-              Requirements", RFC 7766, DOI 10.17487/RFC7766, March 2016,
-              <https://www.rfc-editor.org/info/rfc7766>.
-
-   [RFC7816]  Bortzmeyer, S., "DNS Query Name Minimisation to Improve
-              Privacy", RFC 7816, DOI 10.17487/RFC7816, March 2016,
-              <https://www.rfc-editor.org/info/rfc7816>.
-
-   [RFC7830]  Mayrhofer, A., "The EDNS(0) Padding Option", RFC 7830,
-              DOI 10.17487/RFC7830, May 2016, <https://www.rfc-
-              editor.org/info/rfc7830>.
+   [RFC7706]  Kumari, W. and P. Hoffman, "Decreasing Access Time to Root
+              Servers by Running One on Loopback", RFC 7706,
+              DOI 10.17487/RFC7706, November 2015,
+              <https://www.rfc-editor.org/info/rfc7706>.
 
    [RFC7858]  Hu, Z., Zhu, L., Heidemann, J., Mankin, A., Wessels, D.,
               and P. Hoffman, "Specification for DNS over Transport
               Layer Security (TLS)", RFC 7858, DOI 10.17487/RFC7858, May
               2016, <https://www.rfc-editor.org/info/rfc7858>.
 
-   [RFC7871]  Contavalli, C., van der Gaast, W., Lawrence, D., and W.
-              Kumari, "Client Subnet in DNS Queries", RFC 7871,
-              DOI 10.17487/RFC7871, May 2016, <https://www.rfc-
-              editor.org/info/rfc7871>.
-
-   [RFC7873]  Eastlake 3rd, D. and M. Andrews, "Domain Name System (DNS)
-              Cookies", RFC 7873, DOI 10.17487/RFC7873, May 2016,
-              <https://www.rfc-editor.org/info/rfc7873>.
-
    [RFC8094]  Reddy, T., Wing, D., and P. Patil, "DNS over Datagram
               Transport Layer Security (DTLS)", RFC 8094,
-              DOI 10.17487/RFC8094, February 2017, <https://www.rfc-
-              editor.org/info/rfc8094>.
-
-   [RFC8198]  Fujiwara, K., Kato, A., and W. Kumari, "Aggressive Use of
-              DNSSEC-Validated Cache", RFC 8198, DOI 10.17487/RFC8198,
-              July 2017, <https://www.rfc-editor.org/info/rfc8198>.
+              DOI 10.17487/RFC8094, February 2017,
+              <https://www.rfc-editor.org/info/rfc8094>.
 
    [RFC8375]  Pfister, P. and T. Lemon, "Special-Use Domain
               'home.arpa.'", RFC 8375, DOI 10.17487/RFC8375, May 2018,
               <https://www.rfc-editor.org/info/rfc8375>.
+
+   [Tor-DNS]  Reschbach, G., Pulls, B., Roberts, L., Winter, P., and N.
+              Feamster, "The Effect of DNS on Tor's Anonymity", 2016.
 
 Authors' Addresses
 
@@ -554,12 +536,6 @@ Authors' Addresses
    United States
 
    Email: annee@cs.princeton.edu
-
-
-
-Edmundson, et al.        Expires January 3, 2019               [Page 10]
-
-Internet-Draft                Oblivious DNS                    July 2018
 
 
    Paul Schmitt
@@ -578,10 +554,34 @@ Internet-Draft                Oblivious DNS                    July 2018
    Email: nfeamster@cs.princeton.edu
 
 
+
+
+
+Edmundson, et al.        Expires January 3, 2019               [Page 10]
+
+Internet-Draft                Oblivious DNS                    July 2018
+
+
    Allison Mankin
    Salesforce
 
    Email: allison.mankin@gmail.com
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
