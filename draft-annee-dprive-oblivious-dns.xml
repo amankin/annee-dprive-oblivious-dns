@@ -92,7 +92,7 @@ developed and services deployed that
 that encrypt a user’s DNS queries to the recursive
 resolver and thus obscure them from some network observers and from the
 user's Internet service provider.  However, these systems
-merely transfer trust to a third party.  We posit that
+merely transfer trust to a third party.  We 
 argue that no single party should be able to associate DNS
 queries with a client IP address that issues those queries. To
 this end, this document specifies Oblivious DNS (ODNS), which introduces
@@ -129,15 +129,16 @@ server taken from <xref target="RFC8310"/>:
 
 <section anchor="introduction" title="Introduction">
 <t>Recognizing the privacy vulnerabilities
-associated with DNS queries, a number of standards have been 
-developed and services deployed that
+associated with DNS queries, a number of specifications 
+and services have been developed
 that encrypt a  user’s DNS queries to the recursive
 resolver and thus obscure them from some network observers and from the
 user's Internet service provider.  However, these systems
-merely transfer trust to a third party.  We posit that
+merely transfer trust to a third party.  We argue that
 no single party should be able to associate DNS
-queries with a client IP address that issues those queries [many of
-the Informative References can go here].</t>
+queries with a client IP address that issues those queries, that there
+should be obfuscation between the client and its queries.
+</t>
 
 <t>
 DNS queries can reveal significant information about the Internet destinations
@@ -146,28 +147,34 @@ themselves may reveal the websites that a user is visiting. In the case of
 smart-home Internet of Things (IoT) devices, the DNS queries may reveal the
 types of devices in user homes. Previous work has also demonstrated that DNS
 lookups can identify the websites that a user is visiting, even when they are
-using an anonymizing service such as Tor. The operator of a DNS resolver may
+using an anonymizing service such as Tor <xref target="Tor-DNS"/>. 
+The operator of a DNS resolver may
 also retain information about DNS queries and responses---including the IP
 addresses that query the domains and the DNS names that are queries.
 </t>
 
 <t>
-Other approaches have layered encryption on top of DNS. For example, DNS-over-
-TLS, DNS-over-DTLS, and DNS-over-HTTPS send DNS queries over an encrypted channel, which
-prevents an  eavesdropper from learning the contents of a DNS lookup but does
+Other approaches have layered encryption on top of the DNS query stream. For example, 
+DNS-over-TLS <xref target="RFC7858"/>, DNS-over-DTLS <xref target="RFC8094"/>, and DNS-over-HTTPS
+<xref target="I-D.ietf-doh-dns-over-https"/>
+all send DNS queries over an encrypted channel, which
+prevents an eavesdropper from learning the contents of a DNS lookup but does
 not prevent the operator of the recursive resolver from linking queries and IP
-addresses. DNSCurve uses elliptic curve cryptography  to encrypt DNS requests
+addresses. DNSCurve (ref to be added) uses elliptic curve cryptography  to encrypt DNS requests
 and responses; it also authenticates all DNS responses and eliminates  any
-forged responses.   DNSCrypt encrypts and
+forged responses.   DNSCrypt (ref to be added) encrypts and
 authenticates DNS traffic between a client and a recursive
-resolver. Neither of these approaches prevent the
+resolver. None of the approaches prevent the
 recursive resolver from observing DNS queries and responses.
+Note: a new draft is under development, targetted to for BCP, that n
+would offers a policy and best-practices approach to the problem of recursive resolvers's
+observation of this data.
 </t>
 
 <t>
 ODNS (1) obfuscates the queries that a recursive resolver sees from the clients
 that issue DNS queries; and (2) obfuscates the client's IP address from upper
-levels of the DNS hierarchy that ultimately resolve the query (\ie, the
+levels of the DNS hierarchy that ultimately resolve the query (that is, the
 authoritative servers). ODNS operates in the context of the existing DNS
 protocol, allowing the existing deployed infrastructure to remain unchanged. A
 client sends an encrypted query to a recursive resolver, which then forwards
@@ -177,24 +184,25 @@ the ODNS server never sees the IP address of the client.
 </t>
 
 <t>
-ODNS requires small changes to a client's stub resolver, as well as to
-the authoritative DNS server. The stub resolver must take an existing DNS
+ODNS requires a modified client stub resolver, and a modified 
+authoritative DNS server. The stub resolver must take an existing DNS
 name, encrypt it, and append the ODNS domain to ensure that the query is
-forwarded to the ODNS authoritative DNS server. The ODNS
-authoritative DNS server must also act as a recursive DNS resolver, ultimately
-retrieving the DNS record that corresponds to the client's initial query. 
+forwarded to the ODNS authoritative DNS server. The 
+authoritative DNS server for ODNS must also act as a recursive DNS resolver;
+it must not only reply for the ODNS namespace but also ultimately
+retrieve the DNS record that corresponds to the client's initial query. 
 </t>
 </section>
 
 <section anchor="overview" title="ODNS Overview">
 <t>
-ODNS operates similarly to conventional DNS, but adds two components: (1)~each
+ODNS operates similarly to conventional DNS, but adds two components: (1)each
 client runs a modified stub resolver; and (2) ODNS runs an authoritative
 name server that also acts as a recursive DNS resolver for the original DNS query:
 <list style="symbols">
 <t>The client's stub
-resolver obfuscates domain that the client is
-requesting (via symmetric encryption), resulting in the recursive resolver
+resolver obfuscates the domain that the client is
+requesting (via symmetric encryption), resulting in the client's configured recursive resolver
 being unaware  of the requested domain.  </t>
 <t>The authoritative name server for
 ODNS separates the clients' identities from  their corresponding DNS
@@ -204,32 +212,36 @@ domains.</t>
 </t>
 
 <t>
-Operators of recursive DNS resolvers see individual IP addresses and with the
-fully qualified domain name that accompanies the query.  Operators of
+As detailed in <xref target="RFC7626"/>, operators of recursive DNS resolvers see individual IP addresses 
+along with the fully qualified domain name those IPs request.  Operators of
 authoritative resolvers may also be able to learn information about the client
-by using one of the extensions to DNS, such as EDNS0 Client Subnet~.  EDNS0 can
-reveal information about the user's IP address or subnet to authoritative DNS
+by using one of the extensions to DNS, notably EDNS0 Client Subnet (ECS) <xref target="RFC7871"/>.  
+ECS can reveal information about the user's IP address or subnet to authoritative DNS
 servers higher in the DNS hierarchy (not only recursive DNS resolvers).
 ODNS hides a client's IP address from the authoritative name servers at
 different levels of the DNS hierarchy.
 </t>
 <t>
-The recursive DNS resolver knows the client IP address but never sees the
-domain that it queries.  ODNS requires the client to use a custom local
+The configured (non-ODNS) recursive DNS resolver knows the client IP address but 
+never sees the domain that it queries.  ODNS requires the client to use a custom local
 stub resolver, which hides the requested domain from the recursive  resolver.
 The ODNS stub resolver, which runs at the client, encrypts the original
 DNS query for the ODNS authoritative DNS server before it appends the
-.odns domain to the query, which causes the recursive resolver to
+domain for the ODNS namespace to the query, which causes the recursive resolver to
 forward the encrypted domain name on to the ODNS authoritative server.
+NOTE: for 
+simplicity, we sometimes say that this authoritative server is for .odns, 
+but any authoritative DNS domain can run an ODNS server.  Even if there was a
+TLD, there would be leakage of information, because the IP addresses of clients and
+recursive resolvers would be seen at the root.  Experiments can be done to avoid
+leakage about queries of this nature through adaptation of <xref target="RFC7706"/>.
 </t>
 
 <t>
 When an ODNS authoritative DNS server receives a DNS query, it  removes
-any client information from the request (e.g., the client IP address, ENDS0
+any client information from the request (e.g., the client IP address, EDNS0
 client subnet information) before performing additional DNS lookups.  The
-.odns name server then acts as a recursive resolver. For
-simplicity, we say that this authoritative server is for .odns domains,
-but any authoritative DNS domain can run an ODNS server. The
+ODNS name server then switches to acting as a recursive resolver.  The
 authoritative server forwards any response to the original recursive DNS
 resolver,  which in turn sends the response to the client.
 </t>
@@ -268,17 +280,17 @@ symmetric session key, encrypts
 the
 domain  name with the session key, encrypts the session key with the authoritative
 server's public key, and appends the .odns TLD to the
-encrypted domain. ($\{$www.foo.com$\}_k$.odns.)
+encrypted domain. (www.example.com_k.odns.)
 The stub also appends 
 the session key encrypted under the
-.odns authoritative 
-server's public key ($\{k\}_{PK}$)
+ODNS authoritative 
+server's public key k_PK)
 </t>
 
 <t>
 The client sends the query  in the Additional Information portion of the
 DNS query to the recursive
-resolver, which then sends it to the authoritative name server for .odns.
+resolver, which then sends it to the authoritative name server for ODNS.
 </t>
 
 <t>The authoritative server for ODNS queries decrypts the session key, which
@@ -395,7 +407,6 @@ Are systems depending on ODNS vulnerable to DoS in specific ways that should be 
 
 <section anchor="acknowledgements" title="Acknowledgements">
 <t>
-TODO: Acknowledge funding source here if desired.
 </t>
 <t>
 </t>
@@ -425,33 +436,34 @@ TODO: Acknowledge funding source here if desired.
 <?rfc include="https://xml2rfc.tools.ietf.org/public/rfc/bibxml/reference.RFC.2119.xml"?>
 <?rfc include="https://xml2rfc.tools.ietf.org/public/rfc/bibxml/reference.RFC.3172.xml"?>
 <?rfc include="https://xml2rfc.tools.ietf.org/public/rfc/bibxml/reference.RFC.6973.xml"?>
-[<?rfc include="https://xml2rfc.tools.ietf.org/public/rfc/bibxml/reference.RFC.8174.xml"?>
+<?rfc include="https://xml2rfc.tools.ietf.org/public/rfc/bibxml/reference.RFC.7871.xml"?>
+<?rfc include="https://xml2rfc.tools.ietf.org/public/rfc/bibxml/reference.RFC.8174.xml"?>
 <?rfc include="https://xml2rfc.tools.ietf.org/public/rfc/bibxml/reference.RFC.8310.xml"?>
 </references>
 <references title="Informative References">
 <?rfc include="https://xml2rfc.tools.ietf.org/public/rfc/bibxml3/reference.I-D.ietf-doh-dns-over-https.xml"?>
-<?rfc include="https://xml2rfc.tools.ietf.org/public/rfc/bibxml3/reference.I-D.ietf-dprive-padding-policy.xml"?>
 <?rfc include="https://xml2rfc.tools.ietf.org/public/rfc/bibxml/reference.RFC.7626.xml"?>
-<?rfc include="https://xml2rfc.tools.ietf.org/public/rfc/bibxml/reference.RFC.7686.xml"?>
-<?rfc include="https://xml2rfc.tools.ietf.org/public/rfc/bibxml/reference.RFC.7816.xml"?>
-<?rfc include="https://xml2rfc.tools.ietf.org/public/rfc/bibxml/reference.RFC.7830.xml"?>
-<?rfc include="https://xml2rfc.tools.ietf.org/public/rfc/bibxml/reference.RFC.7858.xml"?>
-<?rfc include="https://xml2rfc.tools.ietf.org/public/rfc/bibxml/reference.RFC.7871.xml"?>
-<?rfc include="https://xml2rfc.tools.ietf.org/public/rfc/bibxml/reference.RFC.7873.xml"?>
-<?rfc include="https://xml2rfc.tools.ietf.org/public/rfc/bibxml/reference.RFC.8375.xml"?>
 <?rfc include="https://xml2rfc.tools.ietf.org/public/rfc/bibxml/reference.RFC.7706.xml"?>
-<?rfc include="https://xml2rfc.tools.ietf.org/public/rfc/bibxml/reference.RFC.7766.xml"?>
+<?rfc include="https://xml2rfc.tools.ietf.org/public/rfc/bibxml/reference.RFC.7686.xml"?>
+<?rfc include="https://xml2rfc.tools.ietf.org/public/rfc/bibxml/reference.RFC.7858.xml"?>
+<?rfc include="https://xml2rfc.tools.ietf.org/public/rfc/bibxml/reference.RFC.8375.xml"?>
 <?rfc include="https://xml2rfc.tools.ietf.org/public/rfc/bibxml/reference.RFC.8094.xml"?>
-<?rfc include="https://xml2rfc.tools.ietf.org/public/rfc/bibxml/reference.RFC.8198.xml"?>
 
-<reference anchor='Pitfalls-of-DNS-Encryption'
- target='https://www.ietf.org/mail-archive/web/dns-privacy/current/pdfWqAIUmEl47.pdf'>
+
+<reference anchor='Tor-DNS' target=''>
     <front>
-        <title>Pretty Bad Privacy: Pitfalls of DNS Encryption</title>
-        <author initials='H.' surname='Shulman' fullname='Haya Shulman'>
-            <organization>Fachbereich Informatik, Technische Universität Darmstadt</organization>
+        <title>The Effect of DNS on Tor's Anonymity</title>
+        <author initials='G.' surname='Reschbach' fullname='G. Reschbach'>
         </author>
-        <date year='2014'/>
+        <author initials='B.' surname='Pulls' fullname='B. Pulls'>
+        </author>
+        <author initials='L.M.' surname='Roberts' fullname='Laura Roberts'>
+        </author>
+        <author initials='P.' surname='Winter' fullname='Philip Winter'>
+        </author>
+        <author initials='N.' surname='Feamster' fullname='Nick Feamster'>
+        </author>
+        <date year='2016'/>
     </front>
 </reference>
 
@@ -464,3 +476,5 @@ TODO: Acknowledge funding source here if desired.
 
 </back>
 </rfc>
+
+
