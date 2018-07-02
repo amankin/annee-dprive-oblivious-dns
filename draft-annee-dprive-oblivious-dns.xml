@@ -207,7 +207,7 @@ domains.</t>
 Operators of recursive DNS resolvers see individual IP addresses and with the
 fully qualified domain name that accompanies the query.  Operators of
 authoritative resolvers may also be able to learn information about the client
-by using one of the extensions to DNS, such as EDNS0 Client Subnet~\cite{RFC7871}.  EDNS0 can
+by using one of the extensions to DNS, such as EDNS0 Client Subnet~.  EDNS0 can
 reveal information about the user's IP address or subnet to authoritative DNS
 servers higher in the DNS hierarchy (not only recursive DNS resolvers).
 ODNS hides a client's IP address from the authoritative name servers at
@@ -354,7 +354,7 @@ resolvers strip all OPT records before forwarding the query on to the
 authoritative nameserver. In this case, ODNS cannot simply use an OPT to communicate the session key.  ODNS overcomes this challenge by placing the  encrypted key in the QNAME field of the DNS message; the QNAME field consists of 4 sets
 of 63 bytes, which limits both the key size and encryption scheme used.  For
 this reason, ODNS uses 16-byte AES session keys and encrypts the session
-keys using the Elliptic Curve Integrated Encryption Scheme (ECIES)~\cite{ecies}.  Once the session key is encrypted, the resulting value takes up 44 bytes of the QNAME
+keys using the Elliptic Curve Integrated Encryption Scheme (ECIES)~.  Once the session key is encrypted, the resulting value takes up 44 bytes of the QNAME
 field. In the future, we envision an ODNS-specific OPT code that would cause recursive resolvers to maintain and forward the ODNS OPT record intact to the authoritative nameserver. Such a mechanism allows for the use of larger encryption keys as OPT records can be much larger (typically 4096 bytes) that the space alloted for QNAMEs. 
 
 </t>
