@@ -1,0 +1,392 @@
+
+
+
+
+dprive                                                      A. Edmundson
+Internet-Draft                                                P. Schmitt
+Intended status: Experimental                                N. Feamster
+Expires: December 31, 2018                          Princeton University
+                                                               A. Mankin
+                                                              Salesforce
+                                                           June 29, 2018
+
+
+             Oblivious DNS - Strong Privacy for DNS Queries
+                  draft-annee-dprive-oblivious-dns-00
+
+Abstract
+
+   Recognizing the privacy vulnerabilities associated with DNS queries,
+   a number of standards have been developed and services deployed that
+   that encrypt a user's DNS queries to the recursive resolver and thus
+   obscure them from some network observers and from the user's Internet
+   service provider.  However, these systems merely transfer trust to a
+   third party.  We posit that argue that no single party should be able
+   to associate DNS queries with a client IP address that issues those
+   queries.  To this end, this document specifies Oblivious DNS (ODNS),
+   which introduces an additional layer of obfuscation between clients
+   and their queries.  To accomplish this, ODNS uses its own
+   authoritative namespace; the authoritative servers for the ODNS
+   namespace act as recursive resolvers for the DNS queries that they
+   receive, but they never see the IP addresses for the clients that
+   initiated these queries.  The ODNS experimental protocol is
+   compatible with existing DNS infrastructure.
+
+Status of This Memo
+
+   This Internet-Draft is submitted in full conformance with the
+   provisions of BCP 78 and BCP 79.
+
+   Internet-Drafts are working documents of the Internet Engineering
+   Task Force (IETF).  Note that other groups may also distribute
+   working documents as Internet-Drafts.  The list of current Internet-
+   Drafts is at https://datatracker.ietf.org/drafts/current/.
+
+   Internet-Drafts are draft documents valid for a maximum of six months
+   and may be updated, replaced, or obsoleted by other documents at any
+   time.  It is inappropriate to use Internet-Drafts as reference
+   material or to cite them other than as "work in progress."
+
+   This Internet-Draft will expire on December 31, 2018.
+
+
+
+
+
+Edmundson, et al.       Expires December 31, 2018               [Page 1]
+
+Internet-Draft                Oblivious DNS                    June 2018
+
+
+Copyright Notice
+
+   Copyright (c) 2018 IETF Trust and the persons identified as the
+   document authors.  All rights reserved.
+
+   This document is subject to BCP 78 and the IETF Trust's Legal
+   Provisions Relating to IETF Documents
+   (https://trustee.ietf.org/license-info) in effect on the date of
+   publication of this document.  Please review these documents
+   carefully, as they describe your rights and restrictions with respect
+   to this document.  Code Components extracted from this document must
+   include Simplified BSD License text as described in Section 4.e of
+   the Trust Legal Provisions and are provided without warranty as
+   described in the Simplified BSD License.
+
+Table of Contents
+
+   1.  Introduction  . . . . . . . . . . . . . . . . . . . . . . . .   2
+   2.  Terminology . . . . . . . . . . . . . . . . . . . . . . . . .   3
+   3.  ODNS Overview . . . . . . . . . . . . . . . . . . . . . . . .   3
+   4.  Sending and Receiving ODNS Queries  . . . . . . . . . . . . .   3
+   5.  Replication and Privacy-Preserving Key Distribution . . . . .   3
+     5.1.  Scalability and Performance Using Anycast . . . . . . . .   3
+     5.2.  Key Distribution  . . . . . . . . . . . . . . . . . . . .   3
+     5.3.  QNAME Length  . . . . . . . . . . . . . . . . . . . . . .   3
+   6.  Backward Compatibility  . . . . . . . . . . . . . . . . . . .   4
+   7.  IANA considerations . . . . . . . . . . . . . . . . . . . . .   4
+   8.  Security considerations . . . . . . . . . . . . . . . . . . .   4
+   9.  Acknowledgements  . . . . . . . . . . . . . . . . . . . . . .   4
+   10. Contributors  . . . . . . . . . . . . . . . . . . . . . . . .   4
+   11. Changelog . . . . . . . . . . . . . . . . . . . . . . . . . .   4
+   12. References  . . . . . . . . . . . . . . . . . . . . . . . . .   4
+     12.1.  Normative References . . . . . . . . . . . . . . . . . .   5
+     12.2.  Informative References . . . . . . . . . . . . . . . . .   5
+   Authors' Addresses  . . . . . . . . . . . . . . . . . . . . . . .   7
+
+1.  Introduction
+
+   Recognizing the privacy vulnerabilities associated with DNS queries,
+   a number of standards have been developed and services deployed that
+   that encrypt a user's DNS queries to the recursive resolver and thus
+   obscure them from some network observers and from the user's Internet
+   service provider.  However, these systems merely transfer trust to a
+   third party.  We posit that argue that no single party should be able
+   to associate DNS queries with a client IP address that issues those
+   queries [many of the Informative References can go here].
+
+   Text to be adapted from paper.
+
+
+
+Edmundson, et al.       Expires December 31, 2018               [Page 2]
+
+Internet-Draft                Oblivious DNS                    June 2018
+
+
+   o  DNS privacy services.
+
+   o
+
+2.  Terminology
+
+   The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT",
+   "SHOULD", "SHOULD NOT", "RECOMMENDED", "NOT RECOMMENDED", "MAY", and
+   "OPTIONAL" in this document are to be interpreted as described in BCP
+   14 [RFC2119] [RFC8174] when, and only when, they appear in all
+   capitals, as shown here.
+
+   Privacy terminology is as described in Section 3 of [RFC6973].
+
+   DNS terminology is as described in [I-D.ietf-dnsop-terminology-bis]
+   with one modification: we use the definition of Privacy-enabling DNS
+   server taken from [RFC8310]:
+
+3.  ODNS Overview
+
+   TODO (in -01 or later): Create an ASCII diagram form of Figure 1 from
+   odns.cs.princeton.edu
+
+4.  Sending and Receiving ODNS Queries
+
+   TODO (in -01 or later): Create an ASCII diagram form of Figure 2 from
+   odns.cs.princeton.edu
+
+   Text to be adapted from paper.
+
+5.  Replication and Privacy-Preserving Key Distribution
+
+5.1.  Scalability and Performance Using Anycast
+
+   Text to be adapted from paper.
+
+5.2.  Key Distribution
+
+   Text to be adapted from paper.
+
+5.3.  QNAME Length
+
+   Text to be adapted from paper.
+
+
+
+
+
+
+
+
+Edmundson, et al.       Expires December 31, 2018               [Page 3]
+
+Internet-Draft                Oblivious DNS                    June 2018
+
+
+6.  Backward Compatibility
+
+   Text to be adapted from paper.
+
+7.  IANA considerations
+
+   For initial experimental deployment of this protocol, the name
+   obliviousdns.com has been registered.  Its length is a drawback, for
+   the reasons discussed in Section 5.3 and a shorter privately
+   registered name may be chosen for future larger-scale
+   experimentation.  An infrastructure related zone would be more
+   advantageous choice.  Therefore discussion should resolve the
+   appropriateness and conditions of a request for a special use domain
+   name, e.g. odns.arpa.  This falls under the considerations in
+   [RFC3172].  Notes: because of restrictions on TLD registration,
+   following the example of .onion [RFC7686] is infeasible.  Traffic for
+   ODNS traverses normal Internet paths, therefore the IANA special use
+   registry recently established for Locally-Served DNS Zones, in which
+   home.arpa has recently been registered [RFC8375], is also not a model
+   for IANA considerations for the ODNS Namespace.
+
+8.  Security considerations
+
+   TODO (some questions to consider): what are residual risks in the
+   ODNS scheme and additional mitigations?  Is there any increase in
+   attack surface for the users and operators in ODNS?  Are systems
+   depending on ODNS vulnerable to DoS in specific ways that should be
+   mitigated?
+
+9.  Acknowledgements
+
+   TODO: Acknowledge funding source here if desired.
+
+10.  Contributors
+
+   The following contributed significantly to the document:
+
+11.  Changelog
+
+   draft-annee-dprive-oblivious-dns-00
+
+   o  Initial commit
+
+12.  References
+
+
+
+
+
+
+
+Edmundson, et al.       Expires December 31, 2018               [Page 4]
+
+Internet-Draft                Oblivious DNS                    June 2018
+
+
+12.1.  Normative References
+
+   [I-D.ietf-dnsop-terminology-bis]
+              Hoffman, P., Sullivan, A., and K. Fujiwara, "DNS
+              Terminology", draft-ietf-dnsop-terminology-bis-10 (work in
+              progress), April 2018.
+
+   [RFC2119]  Bradner, S., "Key words for use in RFCs to Indicate
+              Requirement Levels", BCP 14, RFC 2119,
+              DOI 10.17487/RFC2119, March 1997,
+              <https://www.rfc-editor.org/info/rfc2119>.
+
+   [RFC3172]  Huston, G., Ed., "Management Guidelines & Operational
+              Requirements for the Address and Routing Parameter Area
+              Domain ("arpa")", BCP 52, RFC 3172, DOI 10.17487/RFC3172,
+              September 2001, <https://www.rfc-editor.org/info/rfc3172>.
+
+   [RFC6973]  Cooper, A., Tschofenig, H., Aboba, B., Peterson, J.,
+              Morris, J., Hansen, M., and R. Smith, "Privacy
+              Considerations for Internet Protocols", RFC 6973,
+              DOI 10.17487/RFC6973, July 2013,
+              <https://www.rfc-editor.org/info/rfc6973>.
+
+   [RFC8174]  Leiba, B., "Ambiguity of Uppercase vs Lowercase in RFC
+              2119 Key Words", BCP 14, RFC 8174, DOI 10.17487/RFC8174,
+              May 2017, <https://www.rfc-editor.org/info/rfc8174>.
+
+   [RFC8310]  Dickinson, S., Gillmor, D., and T. Reddy, "Usage Profiles
+              for DNS over TLS and DNS over DTLS", RFC 8310,
+              DOI 10.17487/RFC8310, March 2018,
+              <https://www.rfc-editor.org/info/rfc8310>.
+
+12.2.  Informative References
+
+   [I-D.ietf-doh-dns-over-https]
+              Hoffman, P. and P. McManus, "DNS Queries over HTTPS
+              (DoH)", draft-ietf-doh-dns-over-https-12 (work in
+              progress), June 2018.
+
+   [I-D.ietf-dprive-padding-policy]
+              Mayrhofer, A., "Padding Policy for EDNS(0)", draft-ietf-
+              dprive-padding-policy-05 (work in progress), April 2018.
+
+   [Pitfalls-of-DNS-Encryption]
+              Shulman, H., "Pretty Bad Privacy: Pitfalls of DNS
+              Encryption", 2014, <https://www.ietf.org/mail-archive/web/
+              dns-privacy/current/pdfWqAIUmEl47.pdf>.
+
+
+
+
+Edmundson, et al.       Expires December 31, 2018               [Page 5]
+
+Internet-Draft                Oblivious DNS                    June 2018
+
+
+   [RFC7626]  Bortzmeyer, S., "DNS Privacy Considerations", RFC 7626,
+              DOI 10.17487/RFC7626, August 2015,
+              <https://www.rfc-editor.org/info/rfc7626>.
+
+   [RFC7686]  Appelbaum, J. and A. Muffett, "The ".onion" Special-Use
+              Domain Name", RFC 7686, DOI 10.17487/RFC7686, October
+              2015, <https://www.rfc-editor.org/info/rfc7686>.
+
+   [RFC7706]  Kumari, W. and P. Hoffman, "Decreasing Access Time to Root
+              Servers by Running One on Loopback", RFC 7706,
+              DOI 10.17487/RFC7706, November 2015,
+              <https://www.rfc-editor.org/info/rfc7706>.
+
+   [RFC7766]  Dickinson, J., Dickinson, S., Bellis, R., Mankin, A., and
+              D. Wessels, "DNS Transport over TCP - Implementation
+              Requirements", RFC 7766, DOI 10.17487/RFC7766, March 2016,
+              <https://www.rfc-editor.org/info/rfc7766>.
+
+   [RFC7816]  Bortzmeyer, S., "DNS Query Name Minimisation to Improve
+              Privacy", RFC 7816, DOI 10.17487/RFC7816, March 2016,
+              <https://www.rfc-editor.org/info/rfc7816>.
+
+   [RFC7830]  Mayrhofer, A., "The EDNS(0) Padding Option", RFC 7830,
+              DOI 10.17487/RFC7830, May 2016,
+              <https://www.rfc-editor.org/info/rfc7830>.
+
+   [RFC7858]  Hu, Z., Zhu, L., Heidemann, J., Mankin, A., Wessels, D.,
+              and P. Hoffman, "Specification for DNS over Transport
+              Layer Security (TLS)", RFC 7858, DOI 10.17487/RFC7858, May
+              2016, <https://www.rfc-editor.org/info/rfc7858>.
+
+   [RFC7871]  Contavalli, C., van der Gaast, W., Lawrence, D., and W.
+              Kumari, "Client Subnet in DNS Queries", RFC 7871,
+              DOI 10.17487/RFC7871, May 2016,
+              <https://www.rfc-editor.org/info/rfc7871>.
+
+   [RFC7873]  Eastlake 3rd, D. and M. Andrews, "Domain Name System (DNS)
+              Cookies", RFC 7873, DOI 10.17487/RFC7873, May 2016,
+              <https://www.rfc-editor.org/info/rfc7873>.
+
+   [RFC8094]  Reddy, T., Wing, D., and P. Patil, "DNS over Datagram
+              Transport Layer Security (DTLS)", RFC 8094,
+              DOI 10.17487/RFC8094, February 2017,
+              <https://www.rfc-editor.org/info/rfc8094>.
+
+   [RFC8198]  Fujiwara, K., Kato, A., and W. Kumari, "Aggressive Use of
+              DNSSEC-Validated Cache", RFC 8198, DOI 10.17487/RFC8198,
+              July 2017, <https://www.rfc-editor.org/info/rfc8198>.
+
+
+
+Edmundson, et al.       Expires December 31, 2018               [Page 6]
+
+Internet-Draft                Oblivious DNS                    June 2018
+
+
+   [RFC8375]  Pfister, P. and T. Lemon, "Special-Use Domain
+              'home.arpa.'", RFC 8375, DOI 10.17487/RFC8375, May 2018,
+              <https://www.rfc-editor.org/info/rfc8375>.
+
+Authors' Addresses
+
+   Annie Edmundson
+   Princeton University
+   Princeton, NJ
+   United States
+
+   Email: annee@cs.princeton.edu
+
+
+   Paul Schmitt
+   Princeton University
+   Princeton, NJ
+   United States
+
+   Email: pschmitt@cs.princeton.edu
+
+
+   Nick Feamster
+   Princeton University
+   Princeton, NJ
+   United States
+
+   Email: nfeamster@cs.princeton.edu
+
+
+   Allison Mankin
+   Salesforce
+
+   Email: allison.mankin@gmail.com
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Edmundson, et al.       Expires December 31, 2018               [Page 7]
